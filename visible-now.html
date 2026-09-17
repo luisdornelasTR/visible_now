@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Visible Now Buttons</title>
+<style>
+  :root{
+    --bg:#f5f6fa;
+    --card:#ffffff;
+    --text:#1f2430;
+    --accent:#4f6df5;
+    --accent-dark:#3952c9;
+    --msg-bg:#1f2430;
+    --msg-text:#ffffff;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#14161c;
+      --card:#1f2430;
+      --text:#eceef2;
+      --accent:#6d87ff;
+      --accent-dark:#4f6df5;
+      --msg-bg:#eceef2;
+      --msg-text:#14161c;
+    }
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:40px 16px;
+  }
+  h1{
+    font-size:1.5rem;
+    margin-bottom:6px;
+    text-align:center;
+  }
+  p.subtitle{
+    color:var(--text);
+    opacity:0.7;
+    margin-top:0;
+    margin-bottom:32px;
+    text-align:center;
+    max-width:480px;
+  }
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));
+    gap:16px;
+    width:100%;
+    max-width:700px;
+  }
+  button.trigger{
+    background:var(--card);
+    border:2px solid var(--accent);
+    color:var(--text);
+    border-radius:12px;
+    padding:18px 10px;
+    font-size:1rem;
+    font-weight:600;
+    cursor:pointer;
+    transition:transform 0.15s ease, background 0.15s ease;
+  }
+  button.trigger:hover{
+    background:var(--accent);
+    color:#fff;
+    transform:translateY(-2px);
+  }
+  button.trigger .num{
+    display:block;
+    font-size:1.4rem;
+    margin-bottom:4px;
+  }
+  button.trigger .time{
+    display:block;
+    font-size:0.8rem;
+    opacity:0.75;
+    font-weight:400;
+  }
+
+  /* Message overlay */
+  #overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.35);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:1000;
+  }
+  #overlay.show{
+    display:flex;
+  }
+  #messageBox{
+    background:var(--msg-bg);
+    color:var(--msg-text);
+    padding:28px 32px;
+    border-radius:14px;
+    text-align:center;
+    max-width:320px;
+    width:90%;
+    box-shadow:0 10px 30px rgba(0,0,0,0.25);
+    position:relative;
+  }
+  #messageBox h2{
+    margin:0 0 8px 0;
+    font-size:1.3rem;
+  }
+  #messageBox p{
+    margin:0;
+    opacity:0.85;
+    font-size:0.95rem;
+  }
+  #closeBtn{
+    position:absolute;
+    top:8px;
+    right:10px;
+    background:none;
+    border:none;
+    color:inherit;
+    font-size:1.2rem;
+    cursor:pointer;
+    line-height:1;
+    opacity:0.7;
+  }
+  #closeBtn:hover{
+    opacity:1;
+  }
+</style>
+</head>
+<body>
+
+  <h1>Visible Now</h1>
+  <p class="subtitle">Click a button and the message will appear after the number of seconds shown. Close it manually to dismiss it.</p>
+
+  <div class="grid" id="buttonGrid"></div>
+
+  <div id="overlay">
+    <div id="messageBox">
+      <button id="closeBtn" aria-label="Close">&times;</button>
+      <h2>Message is now visible</h2>
+      <p id="timeLabel"></p>
+    </div>
+  </div>
+
+<script>
+  const grid = document.getElementById('buttonGrid');
+  const overlay = document.getElementById('overlay');
+  const timeLabel = document.getElementById('timeLabel');
+  const closeBtn = document.getElementById('closeBtn');
+
+  const times = [0, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  let showTimer = null;
+
+  times.forEach((seconds, index) => {
+    const btn = document.createElement('button');
+    btn.className = 'trigger';
+    btn.innerHTML = `<span class="num">${index + 1}</span><span class="time">delay ${seconds}s</span>`;
+    btn.addEventListener('click', () => scheduleMessage(seconds));
+    grid.appendChild(btn);
+  });
+
+  function scheduleMessage(seconds){
+    clearTimeout(showTimer);
+    hideMessage();
+
+    if (seconds === 0){
+      revealMessage(seconds);
+    } else {
+      showTimer = setTimeout(() => revealMessage(seconds), seconds * 1000);
+    }
+  }
+
+  function revealMessage(seconds){
+    timeLabel.textContent = seconds === 0
+      ? 'Shown immediately (0s delay).'
+      : `Shown after a ${seconds} second${seconds === 1 ? '' : 's'} delay.`;
+    overlay.classList.add('show');
+  }
+
+  function hideMessage(){
+    overlay.classList.remove('show');
+  }
+
+  closeBtn.addEventListener('click', hideMessage);
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) hideMessage();
+  });
+</script>
+
+</body>
+</html>
